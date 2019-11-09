@@ -46,6 +46,15 @@ using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles;
 using namespace nl::Weave::Profiles::NetworkProvisioning;
 
+static WirelessRegDomain sSupportedRegDomains[] =
+{
+    { 'U', 'S' },
+    { 'C', 'A' },
+    { 'G', 'B' },
+    { 'F', 'R' },
+    { 'D', 'E' },
+};
+
 MockNetworkProvisioningServer::MockNetworkProvisioningServer()
 {
     NextNetworkId = 1;
@@ -90,6 +99,11 @@ WEAVE_ERROR MockNetworkProvisioningServer::Init(WeaveExchangeManager *exchangeMg
 
     SetDelegate(this);
 
+    RegConfig.RegDomain = sSupportedRegDomains[0];
+    RegConfig.OpLocation = kWirelessRegOpLocation_Unknown;
+    RegConfig.SupportedRegDomains = sSupportedRegDomains;
+    RegConfig.NumSupportedRegDomains = ArraySize(sSupportedRegDomains);
+
 exit:
     return err;
 }
@@ -106,6 +120,8 @@ void MockNetworkProvisioningServer::Reset()
     for (int i = 0; i < kMaxScanResults; i++)
         ScanResults[i].NetworkId = -1;
     NextNetworkId = 1;
+    RegConfig.RegDomain = sSupportedRegDomains[0];
+    RegConfig.OpLocation = kWirelessRegOpLocation_Unknown;
 }
 
 void MockNetworkProvisioningServer::Preconfig()
@@ -393,6 +409,34 @@ WEAVE_ERROR MockNetworkProvisioningServer::HandleSetRendezvousMode(uint16_t rend
     return WEAVE_NO_ERROR;
 }
 
+WEAVE_ERROR MockNetworkProvisioningServer::HandleGetWirelessRegulatoryConfig(void)
+{
+    {
+        char ipAddrStr[64];
+        mCurOp->PeerAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
+        printf("GetWirelessRegulatoryConfig request received from node %" PRIX64 " (%s)\n", mCurOp->PeerNodeId, ipAddrStr);
+    }
+
+    CompleteOrDelayCurrentOp("get-wireless-reg-config");
+
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR MockNetworkProvisioningServer::HandleSetWirelessRegulatoryConfig(PacketBuffer* regConfigTLV)
+{
+    {
+        char ipAddrStr[64];
+        mCurOp->PeerAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
+        printf("SetWirelessRegulatoryConfig request received from node %" PRIX64 " (%s)\n", mCurOp->PeerNodeId, ipAddrStr);
+    }
+
+    mOpArgs.regConfigTLV = regConfigTLV;
+
+    CompleteOrDelayCurrentOp("set-wireless-reg-config");
+
+    return WEAVE_NO_ERROR;
+}
+
 void MockNetworkProvisioningServer::EnforceAccessControl(nl::Weave::ExchangeContext *ec, uint32_t msgProfileId, uint8_t msgType,
             const nl::Weave::WeaveMessageInfo *msgInfo, AccessControlResult& result)
 {
@@ -462,6 +506,12 @@ void MockNetworkProvisioningServer::CompleteCurrentOp()
         break;
     case NetworkProvisioning::kMsgType_UpdateNetwork:
         err = CompleteUpdateNetwork(mOpArgs.networkInfoTLV);
+        break;
+    case NetworkProvisioning::kMsgType_GetWirelessRegulatoryConfig:
+        err = CompleteGetWirelessRegulatoryConfig();
+        break;
+    case NetworkProvisioning::kMsgType_SetWirelessRegulatoryConfig:
+        err = CompleteSetWirelessRegulatoryConfig(mOpArgs.regConfigTLV);
         break;
     default:
         err = WEAVE_ERROR_INVALID_MESSAGE_TYPE;
@@ -826,17 +876,101 @@ WEAVE_ERROR MockNetworkProvisioningServer::CompleteSetRendezvousMode(uint16_t re
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    {
-        char ipAddrStr[64];
-        mCurOp->PeerAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
-        printf("SetRendezvousMode request received from node %" PRIX64 " (%s)\n", mCurOp->PeerNodeId, ipAddrStr);
-        printf("  Rendezvous Mode: %u\n", rendezvousMode);
-    }
-
     err = SendSuccessResponse();
     SuccessOrExit(err);
 
 exit:
+    return err;
+}
+
+WEAVE_ERROR MockNetworkProvisioningServer::CompleteGetWirelessRegulatoryConfig(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    PacketBuffer *respBuf = NULL;
+    TLVWriter writer;
+
+    respBuf = PacketBuffer::New();
+    VerifyOrExit(respBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    writer.Init(respBuf);
+
+    err = RegConfig.Encode(writer);
+    SuccessOrExit(err);
+
+    err = writer.Finalize();
+    SuccessOrExit(err);
+
+    printf("Sending GetWirelessRegulatoryConfigComplete response\n");
+
+    err = SendGetWirelessRegulatoryConfigComplete(respBuf);
+    respBuf = NULL;
+    SuccessOrExit(err);
+
+exit:
+    PacketBuffer::Free(respBuf);
+    return err;
+}
+
+WEAVE_ERROR MockNetworkProvisioningServer::CompleteSetWirelessRegulatoryConfig(PacketBuffer* regConfigTLV)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WirelessRegConfig newRegConfig;
+
+    newRegConfig.Init();
+    err = newRegConfig.DecodeInPlace(regConfigTLV);
+    if (err != WEAVE_NO_ERROR)
+    {
+        SendStatusReport(kWeaveProfile_Common, Profiles::Common::kStatus_BadRequest, err);
+        ExitNow();
+    }
+
+    // Ensure that the Regulatory Domain and Operating Location fields are present, but
+    // the Supported Regulatory Domains field is not.
+    if (!newRegConfig.IsRegDomainPresent() ||
+        !newRegConfig.IsOpLocationPresent() ||
+        newRegConfig.NumSupportedRegDomains != 0)
+    {
+        err = WEAVE_ERROR_INVALID_TLV_ELEMENT;
+        SendStatusReport(kWeaveProfile_Common, Profiles::Common::kStatus_BadRequest, err);
+        ExitNow();
+    }
+
+    // Make sure the specified regulatory domain code is supported.
+    if (!newRegConfig.RegDomain.IsWorldWide())
+    {
+        uint16_t i;
+        for (i = 0; i < RegConfig.NumSupportedRegDomains; i++)
+        {
+            if (RegConfig.SupportedRegDomains[i] == newRegConfig.RegDomain)
+                break;
+        }
+        if (i == RegConfig.NumSupportedRegDomains)
+        {
+            SendStatusReport(kWeaveProfile_NetworkProvisioning, Profiles::NetworkProvisioning::kStatusCode_UnsupportedRegulatoryDomain);
+            ExitNow();
+        }
+    }
+
+    // Make sure the operating location is supported.
+    if (RegConfig.OpLocation != kWirelessRegOpLocation_Unknown &&
+        RegConfig.OpLocation != kWirelessRegOpLocation_Indoors &&
+        RegConfig.OpLocation != kWirelessRegOpLocation_Outdoors)
+    {
+        SendStatusReport(kWeaveProfile_NetworkProvisioning, Profiles::NetworkProvisioning::kStatusCode_UnsupportedOperatingLocation);
+        ExitNow();
+    }
+
+    // Save the updated regulatory config
+    RegConfig.RegDomain = newRegConfig.RegDomain;
+    RegConfig.OpLocation = newRegConfig.OpLocation;
+
+    printf("Wireless regulatory configuration set to:\n");
+    PrintWirelessRegConfig(RegConfig, "  ");
+
+    SendSuccessResponse();
+
+exit:
+    PacketBuffer::Free(regConfigTLV);
     return err;
 }
 
@@ -880,6 +1014,23 @@ void MockNetworkProvisioningServer::PrintNetworkInfo(NetworkInfo& netInfo, const
     }
     if (netInfo.WirelessSignalStrength != INT16_MIN)
         printf("%sWireless Signal Strength: %d\n", prefix, (int)netInfo.WirelessSignalStrength);
+}
+
+void MockNetworkProvisioningServer::PrintWirelessRegConfig(WirelessRegConfig& regConfig, const char *prefix)
+{
+    if (regConfig.IsRegDomainPresent())
+        printf("%sRegulatory Domain: %c%c\n", prefix, regConfig.RegDomain.Code[0], regConfig.RegDomain.Code[1]);
+    if (regConfig.IsOpLocationPresent())
+        printf("%sOperating Location: %d\n", prefix, (int)regConfig.OpLocation);
+    if (regConfig.NumSupportedRegDomains > 0)
+    {
+        printf("%sSupported Regulatory Domains:", prefix);
+        for (uint16_t i = 0; i < regConfig.NumSupportedRegDomains; i++)
+            printf("%c%c%c", (i == 0) ? ' ' : ',',
+                   regConfig.SupportedRegDomains[i].Code[0],
+                   regConfig.SupportedRegDomains[i].Code[1]);
+        printf("\n");
+    }
 }
 
 WEAVE_ERROR MockNetworkProvisioningServer::SendStatusReport(uint32_t statusProfileId, uint16_t statusCode, WEAVE_ERROR sysError)

@@ -591,6 +591,7 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatReceiver.cpp \
 	@top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatSender.cpp \
 	@top_builddir@/src/lib/profiles/network-provisioning/NetworkProvisioning.cpp \
+	@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp \
 	@top_builddir@/src/lib/profiles/security/ApplicationKeysTrait.cpp \
 	@top_builddir@/src/lib/profiles/security/ApplicationKeysTraitDataSink.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveAccessToken.cpp \
@@ -800,6 +801,7 @@ am__objects_23 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-B
 	@top_builddir@/src/lib/profiles/heartbeat/libWeave_a-WeaveHeartbeatReceiver.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/heartbeat/libWeave_a-WeaveHeartbeatSender.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkProvisioning.$(OBJEXT) \
+	@top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/security/libWeave_a-ApplicationKeysTrait.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/security/libWeave_a-ApplicationKeysTraitDataSink.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveAccessToken.$(OBJEXT) \
@@ -1315,6 +1317,7 @@ nl_WeaveProfiles_sources = @top_builddir@/src/lib/profiles/bulk-data-transfer/Bu
 	@top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatReceiver.cpp \
 	@top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatSender.cpp \
 	@top_builddir@/src/lib/profiles/network-provisioning/NetworkProvisioning.cpp \
+	@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp \
 	@top_builddir@/src/lib/profiles/security/ApplicationKeysTrait.cpp \
 	@top_builddir@/src/lib/profiles/security/ApplicationKeysTraitDataSink.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveAccessToken.cpp \
@@ -1997,6 +2000,8 @@ clean-libLIBRARIES:
 	@: > @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkProvisioning.$(OBJEXT): @top_builddir@/src/lib/profiles/network-provisioning/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.$(OBJEXT): @top_builddir@/src/lib/profiles/network-provisioning/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/security/$(am__dirstamp):
 	@$(MKDIR_P) @top_builddir@/src/lib/profiles/security
 	@: > @top_builddir@/src/lib/profiles/security/$(am__dirstamp)
@@ -2331,6 +2336,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR)/libWeave_a-WeaveHeartbeatSender.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/libWeave_a-NetworkInfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/libWeave_a-NetworkProvisioning.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/libWeave_a-WirelessRegConfig.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-ApplicationKeysTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-ApplicationKeysTraitDataSink.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveAccessToken.Po@am__quote@
@@ -4427,6 +4433,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/network-provisioning/NetworkProvisioning.cpp' object='@top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkProvisioning.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkProvisioning.obj `if test -f '@top_builddir@/src/lib/profiles/network-provisioning/NetworkProvisioning.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/network-provisioning/NetworkProvisioning.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/network-provisioning/NetworkProvisioning.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.o: @top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.o -MD -MP -MF @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/libWeave_a-WirelessRegConfig.Tpo -c -o @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.o `test -f '@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/libWeave_a-WirelessRegConfig.Tpo @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/libWeave_a-WirelessRegConfig.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp' object='@top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.o `test -f '@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp
+
+@top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.obj: @top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.obj -MD -MP -MF @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/libWeave_a-WirelessRegConfig.Tpo -c -o @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.obj `if test -f '@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/libWeave_a-WirelessRegConfig.Tpo @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/libWeave_a-WirelessRegConfig.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp' object='@top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-WirelessRegConfig.obj `if test -f '@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/network-provisioning/WirelessRegConfig.cpp'; fi`
 
 @top_builddir@/src/lib/profiles/security/libWeave_a-ApplicationKeysTrait.o: @top_builddir@/src/lib/profiles/security/ApplicationKeysTrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/security/libWeave_a-ApplicationKeysTrait.o -MD -MP -MF @top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-ApplicationKeysTrait.Tpo -c -o @top_builddir@/src/lib/profiles/security/libWeave_a-ApplicationKeysTrait.o `test -f '@top_builddir@/src/lib/profiles/security/ApplicationKeysTrait.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/security/ApplicationKeysTrait.cpp
