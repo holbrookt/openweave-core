@@ -59,7 +59,7 @@ public:
     WirelessRegDomain RegDomain;                            /**< Active wireless regulatory domain
                                                                  Value of '\0' indicates not present. */
     uint8_t OpLocation;                                     /**< Active operating location
-                                                                 Value of 0xFF indicates not present. */
+                                                                 Value of 0 indicates not present. */
 
     void Init(void);
     bool IsRegDomainPresent(void) const;

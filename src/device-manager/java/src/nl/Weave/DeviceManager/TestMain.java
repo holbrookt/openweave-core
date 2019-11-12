@@ -504,6 +504,12 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         TestResult = "Success";
     }
 
+    public void onGetWirelessRegulatoryConfigComplete(WirelessRegulatoryConfig regConfig)
+    {
+        System.out.println("    Get wireless regulatory config complete");
+        TestResult = "Success";
+    }
+    
     public void onError(Throwable err)
     {
         TestResult = err.toString();
