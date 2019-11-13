@@ -1725,18 +1725,19 @@ class DeviceMgrCmd(Cmd):
             return
         
         regDomain = args[0].upper()
-        opLocation = args[1] if (len(args) > 1) else 'unknown'
+        opLocation = args[1] if (len(args) > 1) else None
 
         if len(regDomain) != 2:
             print 'Invalid wireless regulatory domain code: %s' % regDomain
             print 'Regulatory domain codes must be exactly 2 characters'
             return
-            
-        try:
-            opLocation = WeaveDeviceMgr.ParseOperatingLocation(opLocation)
-        except Exception, ex:
-            print str(ex)
-            return
+        
+        if opLocation != None:
+            try:
+                opLocation = WeaveDeviceMgr.ParseOperatingLocation(opLocation)
+            except Exception, ex:
+                print str(ex)
+                return
             
         regConfig = WeaveDeviceMgr.WirelessRegConfig(regDomain=regDomain, opLocation=opLocation)
         

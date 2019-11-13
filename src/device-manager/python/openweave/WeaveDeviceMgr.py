@@ -501,7 +501,7 @@ class _WirelessRegConfigStruct(Structure):
         regConfigStruct.SupportedRegDomains = POINTER(_WirelessRegDomain)()
         regConfigStruct.NumSupportedRegDomains = 0
         regConfigStruct.RegDomain = _WirelessRegDomain.fromStr(regConfig.RegDomain)
-        regConfigStruct.OpLocation = regConfig.OpLocation
+        regConfigStruct.OpLocation = regConfig.OpLocation if regConfig.OpLocation != None else 0
         return regConfigStruct
 
 _dmLib = None

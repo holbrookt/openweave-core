@@ -641,6 +641,11 @@ public class WeaveDeviceManager
     {
         mCompHandler.onGetWirelessRegulatoryConfigComplete(regConfig);
     }
+    
+    public void onSetWirelessRegulatoryConfigComplete()
+    {
+        mCompHandler.onSetWirelessRegulatoryConfigComplete();
+    }
 
     public void onError(Throwable err)
     {
@@ -693,6 +698,7 @@ public class WeaveDeviceManager
         void onError(Throwable err);
         void onDeviceEnumerationResponse(WeaveDeviceDescriptor deviceDesc, String deviceAddr);
         void onGetWirelessRegulatoryConfigComplete(WirelessRegulatoryConfig regConfig);
+        void onSetWirelessRegulatoryConfigComplete();
     }
 
     public static native boolean isValidPairingCode(String pairingCode);

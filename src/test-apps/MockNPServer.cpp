@@ -100,7 +100,7 @@ WEAVE_ERROR MockNetworkProvisioningServer::Init(WeaveExchangeManager *exchangeMg
     SetDelegate(this);
 
     RegConfig.RegDomain = sSupportedRegDomains[0];
-    RegConfig.OpLocation = kWirelessRegOpLocation_Unknown;
+    RegConfig.OpLocation = kWirelessOperatingLocation_Unknown;
     RegConfig.SupportedRegDomains = sSupportedRegDomains;
     RegConfig.NumSupportedRegDomains = ArraySize(sSupportedRegDomains);
 
@@ -121,7 +121,7 @@ void MockNetworkProvisioningServer::Reset()
         ScanResults[i].NetworkId = -1;
     NextNetworkId = 1;
     RegConfig.RegDomain = sSupportedRegDomains[0];
-    RegConfig.OpLocation = kWirelessRegOpLocation_Unknown;
+    RegConfig.OpLocation = kWirelessOperatingLocation_Unknown;
 }
 
 void MockNetworkProvisioningServer::Preconfig()
@@ -921,48 +921,56 @@ WEAVE_ERROR MockNetworkProvisioningServer::CompleteSetWirelessRegulatoryConfig(P
     if (err != WEAVE_NO_ERROR)
     {
         SendStatusReport(kWeaveProfile_Common, Profiles::Common::kStatus_BadRequest, err);
+        ExitNow(err = WEAVE_NO_ERROR);
+    }
+
+    // Ensure that the Supported Regulatory Domains field is not present.
+    if (newRegConfig.NumSupportedRegDomains != 0)
+    {
+        SendStatusReport(kWeaveProfile_Common, Profiles::Common::kStatus_BadRequest, WEAVE_ERROR_INVALID_TLV_ELEMENT);
         ExitNow();
     }
 
-    // Ensure that the Regulatory Domain and Operating Location fields are present, but
-    // the Supported Regulatory Domains field is not.
-    if (!newRegConfig.IsRegDomainPresent() ||
-        !newRegConfig.IsOpLocationPresent() ||
-        newRegConfig.NumSupportedRegDomains != 0)
+    if (newRegConfig.IsRegDomainPresent())
     {
-        err = WEAVE_ERROR_INVALID_TLV_ELEMENT;
-        SendStatusReport(kWeaveProfile_Common, Profiles::Common::kStatus_BadRequest, err);
-        ExitNow();
-    }
-
-    // Make sure the specified regulatory domain code is supported.
-    if (!newRegConfig.RegDomain.IsWorldWide())
-    {
-        uint16_t i;
-        for (i = 0; i < RegConfig.NumSupportedRegDomains; i++)
+        // Make sure the specified regulatory domain code is supported.
+        if (!newRegConfig.RegDomain.IsWorldWide())
         {
-            if (RegConfig.SupportedRegDomains[i] == newRegConfig.RegDomain)
-                break;
+            uint16_t i;
+            for (i = 0; i < RegConfig.NumSupportedRegDomains; i++)
+            {
+                if (RegConfig.SupportedRegDomains[i] == newRegConfig.RegDomain)
+                    break;
+            }
+            if (i == RegConfig.NumSupportedRegDomains)
+            {
+                SendStatusReport(kWeaveProfile_NetworkProvisioning, Profiles::NetworkProvisioning::kStatusCode_UnsupportedRegulatoryDomain);
+                ExitNow();
+            }
         }
-        if (i == RegConfig.NumSupportedRegDomains)
+    }
+
+    if (newRegConfig.IsOpLocationPresent())
+    {
+        // Make sure the operating location is supported.
+        if (RegConfig.OpLocation != kWirelessOperatingLocation_Unknown &&
+            RegConfig.OpLocation != kWirelessOperatingLocation_Indoors &&
+            RegConfig.OpLocation != kWirelessOperatingLocation_Outdoors)
         {
-            SendStatusReport(kWeaveProfile_NetworkProvisioning, Profiles::NetworkProvisioning::kStatusCode_UnsupportedRegulatoryDomain);
+            SendStatusReport(kWeaveProfile_NetworkProvisioning, Profiles::NetworkProvisioning::kStatusCode_UnsupportedOperatingLocation);
             ExitNow();
         }
     }
 
-    // Make sure the operating location is supported.
-    if (RegConfig.OpLocation != kWirelessRegOpLocation_Unknown &&
-        RegConfig.OpLocation != kWirelessRegOpLocation_Indoors &&
-        RegConfig.OpLocation != kWirelessRegOpLocation_Outdoors)
+    if (newRegConfig.IsRegDomainPresent())
     {
-        SendStatusReport(kWeaveProfile_NetworkProvisioning, Profiles::NetworkProvisioning::kStatusCode_UnsupportedOperatingLocation);
-        ExitNow();
+        RegConfig.RegDomain = newRegConfig.RegDomain;
     }
 
-    // Save the updated regulatory config
-    RegConfig.RegDomain = newRegConfig.RegDomain;
-    RegConfig.OpLocation = newRegConfig.OpLocation;
+    if (newRegConfig.IsOpLocationPresent())
+    {
+        RegConfig.OpLocation = newRegConfig.OpLocation;
+    }
 
     printf("Wireless regulatory configuration set to:\n");
     PrintWirelessRegConfig(RegConfig, "  ");
@@ -1040,6 +1048,6 @@ WEAVE_ERROR MockNetworkProvisioningServer::SendStatusReport(uint32_t statusProfi
     else if (sysError == WEAVE_NO_ERROR)
         printf("Sending StatusReport: Status code = %u, Status profile = %lu\n", statusCode, (unsigned long)statusProfileId);
     else
-        printf("Sending StatusReport: Status code = %u, Status profile = %lu, System error = %d\n", statusCode, (unsigned long)statusProfileId, sysError);
+        printf("Sending StatusReport: Status code = %u, Status profile = %lu, System error = %s\n", statusCode, (unsigned long)statusProfileId, nl::ErrorStr(sysError));
     return this->NetworkProvisioningServer::SendStatusReport(statusProfileId, statusCode, sysError);
 }

@@ -94,6 +94,7 @@ static jclass sNetworkInfoCls = NULL;
 static jclass sWeaveDeviceExceptionCls = NULL;
 static jclass sWeaveDeviceManagerExceptionCls = NULL;
 static jclass sWeaveDeviceDescriptorCls = NULL;
+static jclass sWirelessRegulatoryConfigCls = NULL;
 static jclass sWeaveDeviceManagerCls = NULL;
 static jclass sWeaveStackCls = NULL;
 
@@ -207,6 +208,7 @@ static WEAVE_ERROR N2J_NetworkInfo(JNIEnv *env, const NetworkInfo& inNetworkInfo
 static WEAVE_ERROR N2J_NetworkInfoArray(JNIEnv *env, const NetworkInfo *inArray, uint32_t inArrayLen, jobjectArray& outArray);
 static WEAVE_ERROR N2J_DeviceDescriptor(JNIEnv *env, const WeaveDeviceDescriptor& inDeviceDesc, jobject& outDeviceDesc);
 static WEAVE_ERROR J2N_WirelessRegulatoryConfig(JNIEnv *env, jobject inRegConfig, WirelessRegConfig & outRegConfig);
+static WEAVE_ERROR N2J_WirelessRegulatoryConfig(JNIEnv *env, const WirelessRegConfig& inRegConfig, jobject& outRegConfig);
 static WEAVE_ERROR N2J_Error(JNIEnv *env, WEAVE_ERROR inErr, jthrowable& outEx);
 static WEAVE_ERROR N2J_DeviceStatus(JNIEnv *env, DeviceStatus& devStatus, jthrowable& outEx);
 static WEAVE_ERROR GetClassRef(JNIEnv *env, const char *clsType, jclass& outCls);
@@ -245,6 +247,8 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
     err = GetClassRef(env, "nl/Weave/DeviceManager/WeaveDeviceManagerException", sWeaveDeviceManagerExceptionCls);
     SuccessOrExit(err);
     err = GetClassRef(env, "nl/Weave/DeviceManager/WeaveDeviceDescriptor", sWeaveDeviceDescriptorCls);
+    SuccessOrExit(err);
+    err = GetClassRef(env, "nl/Weave/DeviceManager/WirelessRegulatoryConfig", sWirelessRegulatoryConfigCls);
     SuccessOrExit(err);
     err = GetClassRef(env, "nl/Weave/DeviceManager/WeaveDeviceManager", sWeaveDeviceManagerCls);
     SuccessOrExit(err);
@@ -844,6 +848,7 @@ void Java_nl_Weave_DeviceManager_WeaveDeviceManager_beginAddNetwork(JNIEnv *env,
     WeaveLogProgress(DeviceManager, "beginAddNetwork() called");
 
     err = J2N_NetworkInfo(env, networkInfoObj, networkInfo);
+    WeaveLogProgress(DeviceManager, "beginAddNetwork() J2N_NetworkInfo returned %s", nl::ErrorStr(err));
     SuccessOrExit(err);
 
     pthread_mutex_lock(&sStackLock);
@@ -2585,7 +2590,7 @@ void HandleGetWirelessRegulatoryConfigComplete(WeaveDeviceManager *deviceMgr, vo
     WeaveLogProgress(DeviceManager, "Calling Java onGetWirelessRegulatoryConfigComplete method");
 
     env->ExceptionClear();
-    env->CallVoidMethod(self, method, netInfoArrayObj);
+    env->CallVoidMethod(self, method, regConfigObj);
     VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
 
 exit:
@@ -3397,7 +3402,7 @@ exit:
 WEAVE_ERROR N2J_WirelessRegulatoryConfig(JNIEnv *env, const WirelessRegConfig& inRegConfig, jobject& outRegConfig)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    jmethodID constructor;
+    jmethodID makeMethod;
     jstring regDomain = NULL;
     jobjectArray supportedRegDomains = NULL;
     jclass java_lang_String = NULL;
@@ -3421,11 +3426,11 @@ WEAVE_ERROR N2J_WirelessRegulatoryConfig(JNIEnv *env, const WirelessRegConfig& i
         });
     SuccessOrExit(err);
 
-    constructor = env->GetMethodID(sWeaveDeviceDescriptorCls, "<init>", "(Ljava/lang/String;I[Ljava/lang/String;)V");
-    VerifyOrExit(constructor != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
+    makeMethod = env->GetStaticMethodID(sWirelessRegulatoryConfigCls, "Make", "(Ljava/lang/String;I[Ljava/lang/String;)Lnl/Weave/DeviceManager/WirelessRegulatoryConfig;");
+    VerifyOrExit(makeMethod != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
 
     env->ExceptionClear();
-    outRegConfig = (jthrowable)env->NewObject(sWeaveDeviceDescriptorCls, constructor,
+    outRegConfig = env->CallStaticObjectMethod(sWirelessRegulatoryConfigCls, makeMethod,
             regDomain, (jint)inRegConfig.OpLocation, supportedRegDomains);
     VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
 

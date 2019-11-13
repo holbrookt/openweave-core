@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,8 @@
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Core/WeaveEncoding.h>
 #include <Weave/Profiles/WeaveProfiles.h>
-#include "WirelessRegConfig.h"
+#include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
+#include <Weave/Profiles/network-provisioning/WirelessRegConfig.h>
 
 namespace nl {
 namespace Weave {
@@ -36,8 +37,28 @@ namespace NetworkProvisioning {
 using namespace nl::Weave::Encoding;
 using namespace nl::Weave::TLV;
 
+/**
+ * A null wireless regulatory domain value.
+ *
+ * Note that this value cannot be sent over the wire.
+ */
+const WirelessRegDomain WirelessRegDomain::Null = { '\0', '\0' };
+
+/**
+ * Represents the special 'world-wide' wireless regulatory domain.
+ */
 const WirelessRegDomain WirelessRegDomain::WorldWide = { '0', '0' };
 
+/**
+ * Encode the object in Weave TLV format.
+ *
+ * @param[in]   writer                  A \c TLVWriter object to which the encoded data should
+ *                                      be written.
+ *
+ * @retval #WEAVE_NO_ERROR              On success.
+ * @retval other                        Other Weave or platform-specific error codes indicating
+ *                                      that an error occurred while encoding the data.
+ */
 WEAVE_ERROR WirelessRegConfig::Encode(TLVWriter & writer) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -82,6 +103,23 @@ exit:
     return err;
 }
 
+/**
+ * Populate the object from information encoded in Weave TLV format.
+ *
+ * The supplied \c TVLReader object must be position on or immediately before
+ * the TLV structure containing the information to be decoded.
+ *
+ * Prior to calling the method, the caller must initialize the \c SupportedRegDomains
+ * member to an array big enough to hold the decoded values, and set the
+ * \c NumSupportedRegDomains member to size of that array, in elements.
+ *
+ * @param[in]   reader                  A \c TVLReader object to which should be used to decode
+ *                                      the object information.
+ *
+ * @retval #WEAVE_NO_ERROR              On success.
+ * @retval other                        Other Weave or platform-specific error codes indicating
+ *                                      that an error occurred while decoding the encoded data.
+ */
 WEAVE_ERROR WirelessRegConfig::Decode(TLVReader & reader)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -91,6 +129,7 @@ WEAVE_ERROR WirelessRegConfig::Decode(TLVReader & reader)
     maxSupportedRegDomains = NumSupportedRegDomains;
     NumSupportedRegDomains = 0;
 
+    // If not already in position, advance the reader to the first element.
     if (reader.GetType() == kTLVType_NotSpecified)
     {
         err = reader.Next();
@@ -123,7 +162,7 @@ WEAVE_ERROR WirelessRegConfig::Decode(TLVReader & reader)
             VerifyOrExit(!IsOpLocationPresent(), err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
             err = reader.Get(OpLocation);
             SuccessOrExit(err);
-            VerifyOrExit(OpLocation != 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
+            VerifyOrExit(OpLocation != kWirelessOperatingLocation_NotSpecified, err = WEAVE_ERROR_INVALID_ARGUMENT);
             break;
 
         case kTag_WirelessRegConfig_SupportedRegulatoryDomains:
@@ -140,12 +179,17 @@ WEAVE_ERROR WirelessRegConfig::Decode(TLVReader & reader)
                 VerifyOrExit(reader.GetLength() == sizeof(RegDomain.Code), err = WEAVE_ERROR_INVALID_ARGUMENT);
                 err = reader.GetBytes((uint8_t *)SupportedRegDomains[NumSupportedRegDomains].Code, sizeof(WirelessRegDomain::Code));
                 SuccessOrExit(err);
+                VerifyOrExit(!SupportedRegDomains[NumSupportedRegDomains].IsNull(), err = WEAVE_ERROR_INVALID_ARGUMENT);
                 NumSupportedRegDomains++;
             }
 
             err = reader.ExitContainer(outerContainer2);
             SuccessOrExit(err);
 
+            break;
+
+        default:
+            // Ignore unknown fields.
             break;
         }
     }
@@ -157,6 +201,22 @@ exit:
     return err;
 }
 
+/**
+ * Populate the object from information encoded PacketBuffer, reusing
+ *
+ * Upon completion of the method, the contents of the supplied \c PacketBuffer
+ * will be overwritten with an array containing the supported regulatory domains.
+ * The \c SupportedRegDomains member will be set to point at the start of this
+ * array, and the \c NumSupportedRegDomains member will contain the number of
+ * items in the array.
+ *
+ * @param[in]   buf                     A \c PacketBuffer object containing the information to
+ *                                      be decoded.
+ *
+ * @retval #WEAVE_NO_ERROR              On success.
+ * @retval other                        Other Weave or platform-specific error codes indicating
+ *                                      that an error occurred while decoding the encoded data.
+ */
 WEAVE_ERROR WirelessRegConfig::DecodeInPlace(PacketBuffer * buf)
 {
     TLVReader reader;

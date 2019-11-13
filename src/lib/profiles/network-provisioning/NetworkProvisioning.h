@@ -242,17 +242,6 @@ enum GetNetworkFlags
 };
 
 /**
- * Wireless Regulatory Operating Locations
- */
-enum WirelessRegOpLocations
-{
-    // NOTE: value 0 is reserved and may not be sent over the wire
-    kWirelessRegOpLocation_Unknown              = 0x01,
-    kWirelessRegOpLocation_Indoors              = 0x02,
-    kWirelessRegOpLocation_Outdoors             = 0x03,
-};
-
-/**
  * Delegate class for implementing Network Provisioning operations.
  */
 class NetworkProvisioningDelegate : public WeaveServerDelegateBase

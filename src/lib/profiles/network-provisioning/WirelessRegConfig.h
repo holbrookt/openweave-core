@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,6 @@
 #define WIRELESS_REG_CONFIG_H
 
 #include <Weave/Core/WeaveCore.h>
-#include "NetworkProvisioning.h"
 #include <Weave/Support/FlagUtils.hpp>
 
 namespace nl {
@@ -37,9 +36,32 @@ struct WirelessRegDomain
 
     bool operator ==(const struct WirelessRegDomain & other) const;
     bool operator !=(const struct WirelessRegDomain & other) const;
+    bool IsNull(void) const;
     bool IsWorldWide(void) const;
 
+    static const WirelessRegDomain Null;
     static const WirelessRegDomain WorldWide;
+};
+
+/**
+ * Device operating location, as relevant to wireless regulatory rules.
+ */
+enum WirelessOperatingLocation
+{
+    kWirelessOperatingLocation_NotSpecified = 0x00, /**< Reserved value.
+                                                         May not be sent over-the-wire. */
+
+    kWirelessOperatingLocation_Unknown      = 0x01, /**< Operating location unknown.
+                                                         Signifies that the device's expected operating location
+                                                         is not known, or may change over time. */
+
+    kWirelessOperatingLocation_Indoors      = 0x02, /**< Operating indoors.
+                                                         Signifies that the device's expected operating location
+                                                         is indoors. */
+
+    kWirelessOperatingLocation_Outdoors     = 0x03, /**< Operating outdoors.
+                                                         Signifies that the device's expected operating location
+                                                         is outdoors. */
 };
 
 /**
@@ -48,12 +70,6 @@ struct WirelessRegDomain
 class WirelessRegConfig
 {
 public:
-    enum
-    {
-        kFlag_RegDomainPresent              = 0x01,
-        kFlag_OpLocationPresent             = 0x02,
-    };
-
     WirelessRegDomain * SupportedRegDomains;                /**< Array of supported regulatory domain structures */
     uint16_t NumSupportedRegDomains;                        /**< Length of SupportedRegDomains array */
     WirelessRegDomain RegDomain;                            /**< Active wireless regulatory domain
@@ -87,6 +103,14 @@ inline bool WirelessRegDomain::operator !=(const struct WirelessRegDomain & othe
 }
 
 /**
+ * Test if the value is null.
+ */
+inline bool WirelessRegDomain::IsNull(void) const
+{
+    return Code[0] == '\0' && Code[1] == '\0';
+}
+
+/**
  * Test if the value represents the special 'world-wide' regulatory code.
  */
 inline bool WirelessRegDomain::IsWorldWide(void) const
@@ -107,7 +131,7 @@ inline void WirelessRegConfig::Init(void)
  */
 inline bool WirelessRegConfig::IsRegDomainPresent(void) const
 {
-    return RegDomain.Code[0] != '\0';
+    return !RegDomain.IsNull();
 }
 
 /**
@@ -115,7 +139,7 @@ inline bool WirelessRegConfig::IsRegDomainPresent(void) const
  */
 inline bool WirelessRegConfig::IsOpLocationPresent(void) const
 {
-    return OpLocation != 0;
+    return OpLocation != kWirelessOperatingLocation_NotSpecified;
 }
 
 } // namespace NetworkProvisioning
