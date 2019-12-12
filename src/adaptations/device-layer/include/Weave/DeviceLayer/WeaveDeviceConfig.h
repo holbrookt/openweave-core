@@ -480,6 +480,23 @@
 #define WEAVE_DEVICE_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT 10000
 #endif
 
+// -------------------- Operational Device Credentials Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+ *
+ * Enable the ephemeral operational device credentials feature.
+ *
+ * When enabled device creates and uses its ephemeral operational credentials:
+ *   - operational device id
+ *   - operational device certificate
+ *   - operational device private key
+ * Device uses these credentials to authenticate and communicate to other Weave nodes.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS
+#define WEAVE_DEVICE_CONFIG_ENABLE_OPERATIONAL_DEVICE_CREDENTIALS 0
+#endif
+
 // -------------------- Thread Configuration --------------------
 
 /**
